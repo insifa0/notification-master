@@ -35,6 +35,29 @@ class NotificationListener : NotificationListenerService() {
 
         /** İşlenmiş key cache temizleme eşiği */
         private const val MAX_CACHE_SIZE = 200
+
+        /**
+         * Mesajlaşma uygulamaları — Samsung/Xiaomi bu uygulamaların bildirimlerini
+         * isOngoing=true olarak işaretler. Bu yüzden isOngoing filtresini bypass ediyoruz.
+         */
+        private val MESSAGING_PACKAGES = setOf(
+            "com.whatsapp",
+            "com.whatsapp.w4b",                    // WhatsApp Business
+            "org.telegram.messenger",
+            "org.telegram.messenger.web",
+            "com.instagram.android",
+            "com.twitter.android",
+            "com.google.android.apps.messaging",    // Google Messages
+            "com.samsung.android.messaging",        // Samsung Messages
+            "com.android.mms",
+            "com.android.messaging",
+            "com.discord",
+            "com.snapchat.android",
+            "com.facebook.orca",                   // Messenger
+            "com.facebook.mlite",
+            "com.viber.voip",
+            "jp.naver.line.android"                 // LINE
+        )
     }
 
     @Inject
@@ -68,7 +91,11 @@ class NotificationListener : NotificationListenerService() {
         if (sbn.packageName == packageName) return
 
         // Sürekli bildirimleri atla (müzik çalar, navigasyon vb.)
-        if (sbn.isOngoing) return
+        // ANCAK: Samsung/Xiaomi mesajlaşma uygulamalarını isOngoing=true olarak işaretler;
+        // bu uygulamalar için isOngoing filtresini bypass ediyoruz.
+        val isMessagingApp = sbn.packageName in MESSAGING_PACKAGES
+        if (sbn.isOngoing && !isMessagingApp) return
+        Log.d(TAG, "🔍 Kontrol: ${sbn.packageName} | isOngoing=${sbn.isOngoing} | isMessaging=$isMessagingApp")
 
         // ⚡ SONSUZ DÖNGÜ KORUMASI: Aynı key'i COOLDOWN içinde tekrar işleme
         val now = System.currentTimeMillis()

@@ -84,7 +84,7 @@ class AddRuleViewModel @Inject constructor(
                 val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
                     addCategory(Intent.CATEGORY_LAUNCHER)
                 }
-                val resolveInfos = pm.queryIntentActivities(mainIntent, 0)
+                val resolveInfos = pm.queryIntentActivities(mainIntent, PackageManager.MATCH_ALL)
                 for (resolveInfo in resolveInfos) {
                     val ai = resolveInfo.activityInfo.applicationInfo
                     if (!appMap.containsKey(ai.packageName)) {

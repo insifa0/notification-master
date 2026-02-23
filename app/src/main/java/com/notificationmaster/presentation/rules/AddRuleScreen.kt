@@ -469,6 +469,44 @@ private fun KeywordConfiguration(viewModel: AddRuleViewModel) {
             HorizontalDivider(color = CardBorder)
             Spacer(modifier = Modifier.height(12.dp))
 
+            // 🔥 WARNING TEXT FOR MESSAGING APPS 🔥
+            val messagingApps = setOf(
+                "com.whatsapp", "com.whatsapp.w4b", "org.telegram.messenger",
+                "org.telegram.messenger.web", "com.instagram.android", "com.twitter.android",
+                "com.google.android.apps.messaging", "com.samsung.android.messaging",
+                "com.android.mms", "com.android.messaging", "com.discord",
+                "com.snapchat.android", "com.facebook.orca", "com.facebook.mlite",
+                "com.viber.voip", "jp.naver.line.android"
+            )
+
+            if (viewModel.packageName in messagingApps) {
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFEF5350).copy(alpha = 0.1f))
+                        .border(1.dp, Color(0xFFEF5350).copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Info, // Use appropriate warning icon here if available, Info for now, tinting it red
+                        contentDescription = "Warning",
+                        modifier = Modifier.size(16.dp),
+                        tint = Color(0xFFEF5350)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Android hides the content of messages for privacy on this app. Keyword filters may fail. Use 'Block All' (APP_BLOCK) instead for better results.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFEF5350).copy(alpha = 0.9f),
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             // Info text
             Row(verticalAlignment = Alignment.Top) {
                 Icon(

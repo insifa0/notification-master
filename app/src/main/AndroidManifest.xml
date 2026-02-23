@@ -5,6 +5,10 @@
     <!-- Android 13+ (API 33) için bildirim gönderme izni — RELAY özelliği için gerekli -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Android 11+ (API 30) için yüklü uygulamaları listeleme izni.
+         Bu olmadan WhatsApp, Telegram gibi 3. parti uygulamalar gözükmez. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
     <application
         android:name=".app.NotificationMasterApp"
         android:allowBackup="true"
