@@ -292,4 +292,117 @@ Her proje hangisi olursa olsun bunları öğretir:
 
 ---
 
-*Oluşturulma: 2026-02-25*
+## 🔍 Proje Analizleri: Kapsam, Teknoloji ve Analojiler
+
+Bu bölümde projelerin hangi alana düştüğünü, kullanılacak teknolojileri, gerçek hayattaki örneklerini ve 7 yaşında bir çocuğa anlatırmış gibi basitleştirilmiş açıklamalarını bulabilirsin.
+
+### 1. Distributed FS (Dağıtık Dosya Sistemi)
+- **Alan:** Backend / Infrastructure / Systems Programming
+- **Kullanılacak Teknolojiler/Diller:** **Go**, **Rust**, C++ veya Java (Hadoop Java ile yazılmıştır ancak modern altyapılar Go/Rust ile yazılır). Ağ iletişimi (gRPC, TCP), Dosya Okuma/Yazma (Storage I/O).
+- **Özet ve Gerçek Hayat Örnekleri:** Çok büyük veri kümelerini tek bir sunucuya sığdıramadığımızda, bunları parçalara bölerek onlarca/yüzlerce sunucuya dağıtan ve donanım arızası durumunda veri kaybını önleyen bir depolama kümesidir. **Gerçek hayat örneği:** Google Drive altyapısı (Colossus), Hadoop HDFS. Biz burada veriyi parçalayıp farklı sunuculara (DataNode) dağıtan ve nerede olduklarını haritalayan (NameNode) bir bulut depolama çekirdeğinin prototipini yapıyoruz.
+- **👶 7 Yaşında Çocuğa Anlatım:** "Diyelim ki elinde devasa bir Lego şatosu var ve senin odandaki tek bir kutuya asla sığmıyor. Biz bu dev şatoyu parçalara bölüyoruz ve senin 3 farklı arkadaşının odasında saklıyoruz. Arkadaşlarından biri hastalanıp dışarı çıkamasa bile diğer iki arkadaşında şatonun birer kopyası olduğu için hiçbir şey kaybolmuyor ve oynamaya devam edebiliyorsun."
+- **Akış (Flowchart):**
+  ```mermaid
+  graph LR
+      Client[Kullanıcı] -->|Dosya Yükle| NN[NameNode<br/>Yönetici]
+      NN -->|Şu sunuculara yaz| Client
+      Client -->|Parça 1| DN1[DataNode 1]
+      Client -->|Parça 2| DN2[DataNode 2]
+      DN1 -.->|Arıza için Yedek| DN3[DataNode 3]
+  ```
+
+### 2. Container Runtime
+- **Alan:** Systems Programming / DevOps / Cloud Infrastructure
+- **Kullanılacak Teknolojiler/Diller:** **Go** (sektör standardı), **Rust** veya C. Linux İşletim Sistemi Çağrıları (Linux API: namespaces, cgroups, chroot/pivot_root).
+- **Özet ve Gerçek Hayat Örnekleri:** Bir uygulamanın her işletim sisteminde veya sunucuda, sistemi kirletmeden, diğer programlardan izole ve güvenli bir şekilde çalışmasını sağlayan motordur. **Gerçek hayat örneği:** Docker, Kubernetes'in altındaki containerd veya runc. Biz burada Docker'ın uygulamaları çalıştıran arka plan motorunun (backend'inin) minyatür bir prototipini yapıyoruz.
+- **👶 7 Yaşında Çocuğa Anlatım:** "Bir balığı yaşatmak istiyorsun ama dışarıdaki gölün suyu balığa hiç uygun değil. Biz balık için; içine tam ona uygun suyu, yemi ve oksijeni koyduğumuz, dışarısı ile bağlantısı tamamen kesilmiş şeffaf bir kavanoz yapıyoruz. Bu kavanozu ister salona götür ister bahçeye, balık her yerde aynı şekilde mutlu yaşar. Biz uygulamalar için o kavanozu tasarlıyoruz."
+- **Akış (Flowchart):**
+  ```mermaid
+  graph TD
+      User[Başlat Komutu] --> Runtime[Container Runtime]
+      Runtime --> NS[Namespaces<br/>İzolasyon Duvarları]
+      Runtime --> CG[Cgroups<br/>Hafıza/CPU Sınırı]
+      Runtime --> FS[OverlayFS<br/>Sanal Dosya Sistemi]
+      NS & CG & FS --> Process[İzole Uygulama Çalışır]
+  ```
+
+### 3. Message Queue ⭐
+- **Alan:** Backend / Distributed Systems / Data Engineering / Microservices
+- **Kullanılacak Teknolojiler/Diller:** **Java / Kotlin** (Kafka, Pulsar genelde JVM üzerindedir), **Go** veya **Rust**. TCP sockets, Diske sırayla yazma (Append-only logs), Concurrency (Multithreading/Goroutines).
+- **Özet ve Gerçek Hayat Örnekleri:** Servisler veya uygulamalar arası güvenli ve asenkron (eşzamanlı olmayan) mesaj taşıyıcısıdır. Uygulamalardan biri çok hızlı veri üretip diğeri yavaş tüketiyorsa, verilerin kaybolmadan sıraya girmesini sağlar. **Gerçek hayat örneği:** Apache Kafka, RabbitMQ, Amazon SQS. Biz burada modern mikroservislerin birbiriyle haberleşmesini sağlayan, çökmeyen dev bir dijital postane sisteminin prototipini yapıyoruz.
+- **👶 7 Yaşında Çocuğa Anlatım:** "Diyelim ki sen çok hızlı resim çiziyorsun ama arkadaşın senin çizdiğin bu boyama kitaplarını boyarken çok yavaş, sana yetişemiyor. Sen çizdiklerini doğrudan onun eline vermek yerine yan masaya sırayla üst üste koyuyorsun. Arkadaşın işini bitirdikçe masadan sıradakini alıp boyuyor. Böylece kimse birbirini beklemek zorunda kalmıyor ve çizilen resimler atılmıyor. Biz işte o sıraya koyma masasını inşa ediyoruz."
+- **Akış (Flowchart):**
+  ```mermaid
+  graph LR
+      P[Uygulama 1<br/>Producer / Üretici] -->|Yeni Mesaj| B[Broker<br/>Mesaj Kuyruğu]
+      B -->|Sırası gelince| C1[Uygulama 2<br/>Consumer 1]
+      B -->|Sırası gelince| C2[Uygulama 3<br/>Consumer 2]
+  ```
+
+### 4. CDN / Object Storage
+- **Alan:** Backend / Infrastructure / Edge Computing
+- **Kullanılacak Teknolojiler/Diller:** **Go**, **Rust**, C++. İletişim için HTTP/REST API mimarisi, Önbellekleme (Caching/LRU), Veri arama algoritmaları (Consistent Hashing), Veritabanı entegrasyonu.
+- **Özet ve Gerçek Hayat Örnekleri:** Resim, video gibi statik dosyaları coğrafi olarak dünyadaki birçok sunucuya dağıtan, böylece bir kullanıcının o içeriğe nerede olursa olsun en hızlı şekilde erişmesini sağlayan sistemdir. **Gerçek hayat örneği:** AWS S3 (depolama kısmı), Cloudflare veya Akamai (dağıtım/CDN kısmı). Biz burada bulut depolama sistemi ile bu dosyalara en yakın istasyondan şimşek hızında ulaştıran dağıtım ağının prototipini kuruyoruz.
+- **👶 7 Yaşında Çocuğa Anlatım:** "Düşün ki en sevdiğin dondurmanın fabrikası dünyanın öbür ucunda, Amerika'da. Dondurma sipariş etsen gelmesi aylar sürer, erir gider. Ama bu dondurmacı senin sokağındaki bakkala da küçük, akıllı bir dondurma dolabı koyuyor. Artık canın çektiğinde Amerika'dan sipariş etmek yerine koşup bakkaldan hepi topu 5 dakikada alabiliyorsun. Biz o süper hızlı dondurma dolaplarını yönetecek sistemi tasarlıyoruz."
+- **Akış (Flowchart):**
+  ```mermaid
+  graph TD
+      User[Kullanıcı Dosya İster] --> Edge[Türkiye'deki Edge Sunucu]
+      Edge -- "Dosya yoksa (Cache Miss)" --> Origin[Amerika'daki Ana Sunucu / S3]
+      Origin -->|Dosyayı Gönder| Edge
+      Edge -->|1- Kullanıcıya Ver<br>2- Diğerleri İçin Sakla| User
+  ```
+
+### 5. WebAssembly (WASM) Runtime
+- **Alan:** Systems Programming / Compilers / VM Design / Edge Computing
+- **Kullanılacak Teknolojiler/Diller:** **Rust** (wasmer/wasmtime gibi çok popüler çözümler Rust'tadır), C++ veya Zig. İkili dosya okuma (Binary Parsing), Stack tabanlı Sanal Makine (Stack-based Virtual Machine) tasarımı.
+- **Özet ve Gerçek Hayat Örnekleri:** Herhangi bir programlama dilinde (C++, Rust vb.) kodlanmış yazılımı çok hafif, güvenli ve "her yerde çalışabilen" yalıtılmış bir ikili dosya (binary) formatına çevirip bunu işleten yapıdır. **Gerçek hayat örneği:** Figma'nın internet tarayıcısında masaüstü programı gibi aşırı hızlı çalışması, Cloudflare Workers. Biz, kodları baytlara indirgenmiş halinden satır satır okuyup makinenin kendi dilinde işleten bir "çalıştırma beyni" prototipi yapıyoruz.
+- **👶 7 Yaşında Çocuğa Anlatım:** "Dünyadaki herkesin farklı diller tartıştığını düşün (Çince, İspanyolca, Fransızca). Kimse birbirini anlamıyor. Biz öyle sihirli bir müzik kutusu cebimizde taşıyoruz ki; içine hangi şarkıyı atarsan at, o kutu anında müziği tüm insanların anladığı tek ve evrensel ortak bir melodiye dönüştürüyor ve şimşek hızında sana dinletiyor."
+- **Akış (Flowchart):**
+  ```mermaid
+  graph LR
+      App[C++/Rust Kodu] -.->|Derleyici| WASM[Evrensel .wasm Dosyası]
+      WASM --> Parser[WASM Runtime<br/>Ayrıştırıcı/Parser]
+      Parser --> Stack[Sanal Makine<br/>İşlemci / Executor]
+      Stack --> Result[Sonuç / Ekrana Çıktı]
+  ```
+
+---
+
+## 📈 İlerleme ve Çalışma Planı (Ne Yapmalıyız?)
+
+Hangi projeyi ve teknoloji yığınını seçeceğinize karar vermek için aşağıdaki adımları (Plan) izleyin:
+
+### 1- Ortak İlgi Alanına Göre Seçim Yapın (Karar Aşaması)
+Kariyer hedeflerinize ve öğrenmek istediğiniz şeylere göre karar vermelisiniz (Örn: Hepimiz Java, Spring vs. biliyoruz, o halde Backend yeteneklerimizi taçlandırmak için **Message Queue** çok mantıklı olabilir).
+- Eğer **Backend Mühendisi / Yazılım Mühendisi** pozisyonu hedefleniyorsa → **Message Queue** (Kuşkusuz 1 numara) veya CDN.
+- Eğer **DevOps / Platform Engineer** hedefleniyorsa → **Container Runtime**.
+- Eğer **Çok Düşük Seviye (Low-level) Sistem / Derleyici** hedefleniyorsa → **WASM Runtime** veya Distributed FS.
+
+### 2- Dil Seçimine Karar Verin
+Projelere Göre Teknolojiler:
+- **Message Queue** için: **Java / Kotlin** çok iyi uyar (Kafka mantığı). Modern yaklaşımla **Go** veya **Rust** çok havalı durur.
+- **Distributed FS / CDN** için: Kesinlikle **Go**. (Dağıtık sistemlerin şu anki kralları hep Go kullanır).
+- **Container Runtime** için: Tartışmasız **Go** (Docker, K8S ekosistemi).
+- **WASM Runtime** için: **Rust** (Bu konudaki kütüphane ve endüstri standardıdır).
+
+### 3- Sprint (Aşama) Planlaması
+Karar verildikten sonra şu şekilde bir rota oluşturmalısınız:
+
+1. **Öğrenme ve Tasarım (Araştırma - 1. Hafta):**
+   - Seçtiğiniz sistemin ana kaynağını okuyun (Örn: Kafka belgesini okumak).
+   - "Hangi dil/framework ile yazacağız?" netleştirin ve GitHub deposunu (Repo) oluşturun.
+2. **"Çalışan En Basit Şey" Prototipi (MVP - 2. ve 3. Hafta):**
+   - Birbirine veri yollayabilen sadece tek dosyalık basit bir kod ve basit TCP Socket'leri ayağa kaldırın. Henüz 2 kişi bölüşmeyin, beraber pair-programming yapıp olayı kavrayın.
+3. **Modüllere Bölünme (Uygulama - 4. Hafta ve sonrası):**
+   - Sistemi iki ana yapıtaşına ayırın.
+   - Örnek MQ: Biri mesajları sıraya yazan(Producer/Broker Log), diğeri sıradan okumak isteyenleri yöneten(Consumer/Offset) kodları yazsın.
+4. **Kalite Artırımı (Test & Dökümantasyon):**
+   - Birbirinizin kodunu GitHub Merge Request atarken gözden geçirin (Code Review alışkanlığı edinilir).
+   - Testleri yazıp sınırları zorlayın (Sunucuyu fişten çekip verilerin uçup uçmadığına bakın).
+
+Bu tabloyu ikiniz de inceleyip nihai kararınızı verdikten sonra, o projeye has detaylı görev dağılımlarına geçebiliriz. Hangi projede karar kıldığınızda söyleyin, ona göre klasör yapısı ve kod tasarımını başlatalım.
+
+---
+
+*Oluşturulma: 2026-02-25 / Güncelleme: 2026-03-01*
